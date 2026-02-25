@@ -1,0 +1,35 @@
+#The first two instructions compile and run gemm.cu the rest of the instructions are used to monitor various performance metrics associated with the GEMM functions via NCU compute
+
+nvcc -O3 -keep -lineinfo -arch=sm_75 gemm.cu -o gemm
+./gemm
+
+cuobjdump --dump-sass gemm
+cuobjdump --dump-sass gemm > sass.txt
+
+cuobjdump --dump-sass gemm > sass.txt
+!grep -n "naive_tensor_mat_mul_kernel" sass.txt
+sed -n '15087,15587p' sass.txt
+./gemm
+
+ncu --section SchedulerStats --section WarpStateStats ./gemm
+ncu --section LaunchStats ./gemm
+
+
+ncu --query-metrics | head -n 200
+ncu --list-sections
+
+
+ncu --target-processes all \
+  --section LaunchStats \
+  --section Occupancy \
+  --section SpeedOfLight \
+  --section WorkloadDistribution \
+  ./gemm
+
+
+ncu --set full ./gemm
+
+
+ncu --target-processes all --section WarpStateStats --section SchedulerStats ./gemm
+nvcc --version
+ncu --metrics l1tex__data_bank_conflicts_pipe_lsu_mem_shared_op_ld.sum,l1tex__data_bank_conflicts_pipe_lsu_mem_shared_op_st.sum ./gemm
