@@ -1,0 +1,28 @@
+#The first two terminal instructions compile and run PTX_GEMM_code while the rest I've been using to monitor various performance metrics associated with my GEMM functions via NCU compute.
+
+#nvcc -O3 -arch=sm_75 PTX_GEMM_code.cu -o PTX_GEMM_code
+#./PTX_GEMM_code
+
+'''
+!cuobjdump --dump-sass PTX_GEMM_code > sass.txt
+!grep -n "Function : _Z10asm_gemm_4" -n sass.txt
+!sed -n '184,1000p' sass.txt
+!./PTX_GEMM_code
+'''
+
+#!ncu --set full ./PTX_GEMM_code
+#!ncu-ui
+
+
+'''
+!ncu \
+  --set full \
+  --section WarpStateStats \
+  ./PTX_GEMM_code
+'''
+
+#!ncu ./PTX_GEMM_code
+
+#!ncu --metrics sm__inst_executed_pipe_tensor.sum ./PTX_GEMM_code
+
+#!./PTX_GEMM_code
